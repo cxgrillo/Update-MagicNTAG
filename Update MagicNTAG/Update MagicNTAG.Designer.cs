@@ -55,6 +55,7 @@
             this.radioButton190deg = new System.Windows.Forms.RadioButton();
             this.buttonInitialiseCard = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.checkBoxLogIt = new System.Windows.Forms.CheckBox();
             this.tabPage1.SuspendLayout();
             this.groupBoxLength.SuspendLayout();
             this.groupBoxTemp.SuspendLayout();
@@ -83,6 +84,7 @@
             // tabPage1
             // 
             this.tabPage1.BackColor = System.Drawing.SystemColors.Control;
+            this.tabPage1.Controls.Add(this.checkBoxLogIt);
             this.tabPage1.Controls.Add(this.labelPasswordPack);
             this.tabPage1.Controls.Add(this.labelLengthRemaining);
             this.tabPage1.Controls.Add(this.label3);
@@ -344,6 +346,16 @@
             this.tabControl1.Size = new System.Drawing.Size(305, 363);
             this.tabControl1.TabIndex = 26;
             // 
+            // checkBoxLogIt
+            // 
+            this.checkBoxLogIt.AutoSize = true;
+            this.checkBoxLogIt.Location = new System.Drawing.Point(245, 7);
+            this.checkBoxLogIt.Name = "checkBoxLogIt";
+            this.checkBoxLogIt.Size = new System.Drawing.Size(52, 17);
+            this.checkBoxLogIt.TabIndex = 30;
+            this.checkBoxLogIt.Text = "Log it";
+            this.checkBoxLogIt.UseVisualStyleBackColor = true;
+            // 
             // UpdateMagicNTAG
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -398,6 +410,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.RadioButton radioButton200deg;
         private System.Windows.Forms.Label labelPasswordPack;
+        private System.Windows.Forms.CheckBox checkBoxLogIt;
     }
 }
 

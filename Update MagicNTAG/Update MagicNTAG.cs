@@ -30,7 +30,7 @@ using System.Threading;
 namespace UpdateMagicNTAG
 {
 
-    public partial class UpdateMagicNTAG : Form
+    public partial class UpdateMagicNTAG : Form 
     {
 
         private byte[] bCardUIDBytes = new byte[7];
@@ -44,6 +44,9 @@ namespace UpdateMagicNTAG
         private const string csFail = "Fail";
         private const string csFailed = "Failed!";
         private const string cs0Response = "CGrillo:";
+        private const string csLogFile = "cgrillo.txt";
+
+        private StringBuilder sbLog = new StringBuilder();
 
         private SerialPort spSerialPort;
 
@@ -134,6 +137,13 @@ namespace UpdateMagicNTAG
             try
             {
                 sRet = spSerialPort.ReadLine().Trim();
+
+                if (checkBoxLogIt.Checked)
+                {
+                    sbLog.AppendFormat("Sent: {0}\r\n", sToSend);
+                    sbLog.AppendFormat("Rcvd: {0}\r\n", sRet);
+                }
+
             }
             catch (Exception)
             {
@@ -237,15 +247,12 @@ namespace UpdateMagicNTAG
             this.Refresh();
         }
 
-        private bool WriteUID()
+        private bool CheckValidUID()
         {
-            // We may have spaces and/or tab chars!..
-            // Count the no of valid chars first
-
             StringBuilder sbNewCardUID = new StringBuilder();
             int iLen = textBoxUIDToWrite.TextLength;
 
-            for (int iChar = 0; iChar < iLen; iChar++)
+            for (int iChar = 0; iChar<iLen; iChar++)
             {
                 if (ValidHexChar(textBoxUIDToWrite.Text.Substring(iChar, 1)))
                     sbNewCardUID.Append(textBoxUIDToWrite.Text.Substring(iChar, 1).ToUpper());
@@ -253,70 +260,9 @@ namespace UpdateMagicNTAG
             
             if (sbNewCardUID.Length != 14)
             {
-                labelWriteUID.Text = "Invalid Length";
+                labelWriteUID.Text = "Not Hex";
                 labelWriteUID.ForeColor = Color.Red;
                 return false;
-            }
-
-            MessageBox.Show("Remove and replace card");
-            WriteToArduinoAndRead("9");
-
-            // Page 0
-            //byte bUID0 = byte.Parse(sbNewCardUID.ToString().Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-            //byte bUID1 = byte.Parse(sbNewCardUID.ToString().Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-            //byte bUID2 = byte.Parse(sbNewCardUID.ToString().Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-
-            //byte bUID3 = 0; // Checksum required?
-
-            //StringBuilder sbPage0 = new StringBuilder();
-            //sbPage0.AppendFormat("3,0,{0},{1},{2},{3}", bUID0, bUID1, bUID2, bUID3);
-
-            //// Page 1
-            //byte bUID4 = byte.Parse(sbNewCardUID.ToString().Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
-            //byte bUID5 = byte.Parse(sbNewCardUID.ToString().Substring(8, 2), System.Globalization.NumberStyles.HexNumber);
-            //byte bUID6 = byte.Parse(sbNewCardUID.ToString().Substring(10, 2), System.Globalization.NumberStyles.HexNumber);
-            //byte bUID7 = byte.Parse(sbNewCardUID.ToString().Substring(12, 2), System.Globalization.NumberStyles.HexNumber);
-
-            //StringBuilder sbPage1 = new StringBuilder();
-            //sbPage1.AppendFormat("3,1,{0},{1},{2},{3}", bUID4, bUID5, bUID6, bUID7);
-
-
-            //bCardUIDBytes[0] = bUID0;
-            //bCardUIDBytes[1] = bUID1;
-            //bCardUIDBytes[2] = bUID2;
-            //bCardUIDBytes[3] = bUID4;
-            //bCardUIDBytes[4] = bUID5;
-            //bCardUIDBytes[5] = bUID6;
-            //bCardUIDBytes[6] = bUID7;
-
-            StringBuilder sbPage0 = new StringBuilder();
-            sbPage0.AppendFormat("3,0,{0},{1},{2},{3}", bCardUIDBytes[0], bCardUIDBytes[1], bCardUIDBytes[2], 0);
-
-            StringBuilder sbPage1 = new StringBuilder();
-            sbPage1.AppendFormat("3,1,{0},{1},{2},{3}", bCardUIDBytes[3], bCardUIDBytes[4], bCardUIDBytes[5], bCardUIDBytes[6]);
-
-            // Page 2 checksum required?
-            StringBuilder sbPage2 = new StringBuilder();
-            int iUID8 = 0; // Checksum required?
-            sbPage2.AppendFormat("3,2,{0},72,00,00", iUID8);
-
-            string sRetPage0 = WriteToArduinoAndRead(sbPage0.ToString());
-            string sRetPage1 = WriteToArduinoAndRead(sbPage1.ToString());
-            string sRetPage2 = WriteToArduinoAndRead(sbPage2.ToString());
-
-            //MessageBox.Show("Remove and replace card");
-
-            WriteToArduinoAndRead("9");
-
-            if (sRetPage0 == "OK" && sRetPage1 == "OK")
-            {
-                //labelWriteUID.Text = csSuccess;
-                //labelWriteUID.ForeColor = Color.Green;
-            }
-            else
-            {
-                labelWriteUID.Text = csFailed;
-                labelWriteUID.ForeColor = Color.Red;
             }
 
             return true;
@@ -356,40 +302,7 @@ namespace UpdateMagicNTAG
             bCardUIDBytes[6] = bUID7;
 
         }
-
-        private bool WritePassword()
-        {
-            // We may have spaces and/or tab chars!..
-            // Count the no of valid chars first
-
-            byte[] bPasswordBytes = NfcHack.NfcKey.GetKey(bCardUIDBytes);
-
-            String bPackBytes = string.Format("3,240,{0},{1},{2},{3}", bPasswordBytes[0], bPasswordBytes[1], bPasswordBytes[2], bPasswordBytes[3]);
-            string sRetPassword = WriteToArduinoAndRead(bPackBytes.ToString());
-
-
-            labelPasswordPack.Text = String.Format("{0:X} {1:X} {2:X} {3:X}", bPasswordBytes[0], bPasswordBytes[1], bPasswordBytes[2], bPasswordBytes[3]);
-
-            return (sRetPassword == "OK");
-        }
-
-        private bool WritePACK()
-        {
-
-            // We may have spaces and/or tab chars!..
-            // Count the no of valid chars first
-
-            byte[] bPackBytes = NfcHack.NfcKey.GetPack(bCardUIDBytes);
-
-            string sPACK = String.Format("3,241,{0},{1},0,0", bPackBytes[0], bPackBytes[1]);
-
-            string sRetPACK = WriteToArduinoAndRead(sPACK.ToString());
-
-            labelPasswordPack.Text += String.Format(" - {0:X} {1:X}", bPackBytes[0], bPackBytes[1]);
-
-            return (sRetPACK == "OK");
-        }
-
+        
         private bool ValidHexChar(string sPassed)
         {
             if (sPassed.Length != 1)
@@ -554,15 +467,34 @@ namespace UpdateMagicNTAG
 
         private void buttonSetData_Click(object sender, EventArgs e)
         {
+            string sPath = Environment.GetEnvironmentVariable("temp");
+
+            if (checkBoxLogIt.Checked)
+                sbLog = new StringBuilder();
+
             ClearLabels();
-            bool bSuccess = IsThisAMagicNTAGCard();
+            if (!CheckValidUID()) return;
+            if (!IsThisAMagicNTAGCard()) return;
+
             //bSuccess = bSuccess && InitialiseAsNTAG213(false);
-            bSuccess = bSuccess && WriteAllData();
+            bool bSuccess = WriteAllData();
+
+            if (checkBoxLogIt.Checked)
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(Path.Combine(sPath, csLogFile)))
+                {
+                    file.Write(sbLog.ToString());
+                }
+            }
+
+            MessageBox.Show((bSuccess ? "Complete" : "Something failed!"));
+
+            if (checkBoxLogIt.Checked)
+                MessageBox.Show(String.Format("Logfile written to {0}", Path.Combine(sPath, csLogFile)));
         }
 
         private bool WriteAllData()
         {
-
             bool bFail = false;
             bool bSuccess;
 
@@ -597,15 +529,61 @@ namespace UpdateMagicNTAG
             labelPasswordPack.Text = "";
 
             GetCardUIDBytes();
-            bSuccess = WritePassword();
-            bSuccess = bSuccess && WritePACK();
-            bSuccess = bSuccess && WriteUID();
+
+            // Password writing
+            byte[] bPasswordBytes = NfcHack.NfcKey.GetKey(bCardUIDBytes);
+
+            String sPassword = string.Format("3,240,{0},{1},{2},{3}", bPasswordBytes[0], bPasswordBytes[1], bPasswordBytes[2], bPasswordBytes[3]);
+            string sRetPassword = WriteToArduinoAndRead(sPassword.ToString());
 
 
-            if (!bSuccess) return false;
+            labelPasswordPack.Text = String.Format("{0:X} {1:X} {2:X} {3:X}", bPasswordBytes[0], bPasswordBytes[1], bPasswordBytes[2], bPasswordBytes[3]);
 
-            MessageBox.Show("Remove and replace card");
+            if (sRetPassword != "OK") return false;
+
+            // PACK Code  writing
+
+            byte[] bPackBytes = NfcHack.NfcKey.GetPack(bCardUIDBytes);
+
+            string sPACK = String.Format("3,241,{0},{1},0,0", bPackBytes[0], bPackBytes[1]);
+
+            string sRetPACK = WriteToArduinoAndRead(sPACK.ToString());
+
+            labelPasswordPack.Text += String.Format(" - {0:X} {1:X}", bPackBytes[0], bPackBytes[1]);
+
+            if (sRetPassword != "OK") return false;
+
+
+            // UID writing
+
+            mb("Remove and replace card\r\n\r\nThen click OK");
             WriteToArduinoAndRead("9");
+
+            StringBuilder sbPage0 = new StringBuilder();
+            sbPage0.AppendFormat("3,0,{0},{1},{2},{3}", bCardUIDBytes[0], bCardUIDBytes[1], bCardUIDBytes[2], 0);
+
+            StringBuilder sbPage1 = new StringBuilder();
+            sbPage1.AppendFormat("3,1,{0},{1},{2},{3}", bCardUIDBytes[3], bCardUIDBytes[4], bCardUIDBytes[5], bCardUIDBytes[6]);
+
+            // Page 2 checksum required?
+            StringBuilder sbPage2 = new StringBuilder();
+            sbPage2.AppendFormat("3,2,0,72,00,00");
+
+            string sRetPage0 = WriteToArduinoAndRead(sbPage0.ToString());
+            string sRetPage1 = WriteToArduinoAndRead(sbPage1.ToString());
+            string sRetPage2 = WriteToArduinoAndRead(sbPage2.ToString());
+
+            if (sRetPage0 != "OK" || sRetPage1 != "OK")
+            {
+                labelWriteUID.Text = csFailed;
+                labelWriteUID.ForeColor = Color.Red;
+                return false;
+            }
+
+            mb("Remove and replace card\r\n\r\nThen click OK");
+            WriteToArduinoAndRead("9");
+
+            bSuccess = true;
 
             // Page 9 stuff
 
@@ -671,17 +649,27 @@ namespace UpdateMagicNTAG
             labelOutput.Text = (bSuccess ? "Data Set" : "Data not set");
             labelOutput.ForeColor = Color.Green;
 
-            MessageBox.Show("Remove and replace card to verify data written");
+            mb("Remove and replace card\r\n\r\nThen click OK");
             WriteToArduinoAndRead("9");
 
             string sUID = GetUID(" ");
 
-            labelWriteUID.Text = (sUID == textBoxUIDToWrite.Text.Replace('\t', ' ') ? csSuccess : csFail);
-            labelWriteUID.ForeColor = (sUID == textBoxUIDToWrite.Text.Replace('\t', ' ') ? Color.Green : Color.Red);
+            bool bMatch = (sUID == textBoxUIDToWrite.Text.Replace('\t', ' ').ToUpper());
+            labelWriteUID.Text = (bMatch ? csSuccess : csFail);
+            labelWriteUID.ForeColor = (bMatch ? Color.Green : Color.Red);
 
             return bSuccess;
         }
 
+        public void mb(string sMessage)
+        {
+            MessageBox.Show(sMessage);
+            if (checkBoxLogIt.Checked)
+            {
+                sbLog.AppendFormat("Mbox: {0}\r\n", sMessage.Replace("\r\n", " "));
+            }
+        }
+        
         public bool IsPage240Readable()
         {
             // Read Page F0
@@ -694,27 +682,27 @@ namespace UpdateMagicNTAG
             bool bSuccess = true;
             string sTemp;
 
-            MessageBox.Show("Remove and replace card");
+            mb("Full reset\r\n\r\nRemove and replace card");
 
             sTemp = WriteToArduinoAndRead("9");
             sTemp = WriteToArduinoAndRead("0");
 
             bSuccess = bSuccess && WriteToArduinoAndRead("3,250,00,04,04,02").Equals(csOK); // Page FA
 
-            MessageBox.Show("Remove and replace card");
+            mb("Remove and replace card");
 
             sTemp = WriteToArduinoAndRead("9");
             sTemp = WriteToArduinoAndRead("0");
             sTemp = WriteToArduinoAndRead("1");
             bSuccess = bSuccess && WriteToArduinoAndRead("3,251,01,00,15,03").Equals(csOK); // Page FB
 
-            MessageBox.Show("Remove and replace card");
+            mb("Remove and replace card");
             sTemp = WriteToArduinoAndRead("9");
             sTemp = WriteToArduinoAndRead("0");
             sTemp = WriteToArduinoAndRead("1");
             bSuccess = bSuccess && WriteToArduinoAndRead("3,252,00,00,00,00").Equals(csOK); // Page FC
 
-            MessageBox.Show("Remove and replace card");
+            mb("Remove and replace card");
 
             sTemp = WriteToArduinoAndRead("9");
             sTemp = WriteToArduinoAndRead("0");
@@ -730,7 +718,7 @@ namespace UpdateMagicNTAG
 
             if (bFullReset)
             {
-                MessageBox.Show("Remove and replace card");
+                mb("Remove and replace card");
 
                 sTemp = WriteToArduinoAndRead("0");
                 sTemp = WriteToArduinoAndRead("1");
@@ -743,7 +731,7 @@ namespace UpdateMagicNTAG
                 bSuccess = bSuccess && WriteToArduinoAndRead("03,240,150,91,93,142").Equals(csOK); // Page F0 = Password
                 bSuccess = bSuccess && WriteToArduinoAndRead("03,241,143,104,0,0").Equals(csOK); // Page F1 = Pack
 
-                MessageBox.Show("Remove and replace card");
+               mb("Remove and replace card");
             }
             
             return bSuccess;

@@ -31,6 +31,7 @@
             this.buttonConnect = new System.Windows.Forms.Button();
             this.labelConnect = new System.Windows.Forms.Label();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.checkBoxLogIt = new System.Windows.Forms.CheckBox();
             this.labelPasswordPack = new System.Windows.Forms.Label();
             this.labelLengthRemaining = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -54,12 +55,15 @@
             this.radioButton210deg = new System.Windows.Forms.RadioButton();
             this.radioButton190deg = new System.Windows.Forms.RadioButton();
             this.buttonInitialiseCard = new System.Windows.Forms.Button();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.checkBoxLogIt = new System.Windows.Forms.CheckBox();
+            this.tabControl = new System.Windows.Forms.TabControl();
+            this.tabPageInitialise = new System.Windows.Forms.TabPage();
+            this.labelInitialiseSucess = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.tabPage1.SuspendLayout();
             this.groupBoxLength.SuspendLayout();
             this.groupBoxTemp.SuspendLayout();
-            this.tabControl1.SuspendLayout();
+            this.tabControl.SuspendLayout();
+            this.tabPageInitialise.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonConnect
@@ -102,13 +106,22 @@
             this.tabPage1.Controls.Add(this.label2);
             this.tabPage1.Controls.Add(this.buttonSetData);
             this.tabPage1.Controls.Add(this.groupBoxTemp);
-            this.tabPage1.Controls.Add(this.buttonInitialiseCard);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage1.Size = new System.Drawing.Size(297, 337);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Refill";
+            // 
+            // checkBoxLogIt
+            // 
+            this.checkBoxLogIt.AutoSize = true;
+            this.checkBoxLogIt.Location = new System.Drawing.Point(245, 7);
+            this.checkBoxLogIt.Name = "checkBoxLogIt";
+            this.checkBoxLogIt.Size = new System.Drawing.Size(52, 17);
+            this.checkBoxLogIt.TabIndex = 30;
+            this.checkBoxLogIt.Text = "Log it";
+            this.checkBoxLogIt.UseVisualStyleBackColor = true;
             // 
             // labelPasswordPack
             // 
@@ -140,7 +153,7 @@
             // buttonGetCard
             // 
             this.buttonGetCard.Enabled = false;
-            this.buttonGetCard.Location = new System.Drawing.Point(6, 6);
+            this.buttonGetCard.Location = new System.Drawing.Point(6, 7);
             this.buttonGetCard.Name = "buttonGetCard";
             this.buttonGetCard.Size = new System.Drawing.Size(89, 23);
             this.buttonGetCard.TabIndex = 2;
@@ -328,33 +341,59 @@
             // 
             // buttonInitialiseCard
             // 
-            this.buttonInitialiseCard.Location = new System.Drawing.Point(6, 6);
+            this.buttonInitialiseCard.Enabled = false;
+            this.buttonInitialiseCard.Location = new System.Drawing.Point(96, 124);
             this.buttonInitialiseCard.Name = "buttonInitialiseCard";
             this.buttonInitialiseCard.Size = new System.Drawing.Size(89, 23);
             this.buttonInitialiseCard.TabIndex = 26;
             this.buttonInitialiseCard.Text = "Initialise Card";
             this.buttonInitialiseCard.UseVisualStyleBackColor = true;
-            this.buttonInitialiseCard.Visible = false;
             this.buttonInitialiseCard.Click += new System.EventHandler(this.buttonInitialiseCard_Click);
             // 
-            // tabControl1
+            // tabControl
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Location = new System.Drawing.Point(27, 50);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(305, 363);
-            this.tabControl1.TabIndex = 26;
+            this.tabControl.Controls.Add(this.tabPage1);
+            this.tabControl.Controls.Add(this.tabPageInitialise);
+            this.tabControl.Location = new System.Drawing.Point(27, 50);
+            this.tabControl.Name = "tabControl";
+            this.tabControl.SelectedIndex = 0;
+            this.tabControl.Size = new System.Drawing.Size(305, 363);
+            this.tabControl.TabIndex = 26;
             // 
-            // checkBoxLogIt
+            // tabPageInitialise
             // 
-            this.checkBoxLogIt.AutoSize = true;
-            this.checkBoxLogIt.Location = new System.Drawing.Point(245, 7);
-            this.checkBoxLogIt.Name = "checkBoxLogIt";
-            this.checkBoxLogIt.Size = new System.Drawing.Size(52, 17);
-            this.checkBoxLogIt.TabIndex = 30;
-            this.checkBoxLogIt.Text = "Log it";
-            this.checkBoxLogIt.UseVisualStyleBackColor = true;
+            this.tabPageInitialise.BackColor = System.Drawing.SystemColors.Control;
+            this.tabPageInitialise.Controls.Add(this.labelInitialiseSucess);
+            this.tabPageInitialise.Controls.Add(this.textBox1);
+            this.tabPageInitialise.Controls.Add(this.buttonInitialiseCard);
+            this.tabPageInitialise.Location = new System.Drawing.Point(4, 22);
+            this.tabPageInitialise.Name = "tabPageInitialise";
+            this.tabPageInitialise.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageInitialise.Size = new System.Drawing.Size(297, 337);
+            this.tabPageInitialise.TabIndex = 1;
+            this.tabPageInitialise.Text = "Initialise Card";
+            // 
+            // labelInitialiseSucess
+            // 
+            this.labelInitialiseSucess.AutoSize = true;
+            this.labelInitialiseSucess.Location = new System.Drawing.Point(124, 170);
+            this.labelInitialiseSucess.Name = "labelInitialiseSucess";
+            this.labelInitialiseSucess.Size = new System.Drawing.Size(0, 13);
+            this.labelInitialiseSucess.TabIndex = 28;
+            // 
+            // textBox1
+            // 
+            this.textBox1.BackColor = System.Drawing.SystemColors.Control;
+            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.textBox1.Enabled = false;
+            this.textBox1.Location = new System.Drawing.Point(20, 18);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(245, 85);
+            this.textBox1.TabIndex = 27;
+            this.textBox1.Text = "This will initilaise the MAGIC NTAG card as a NTAG213 and set it up as a 300m rol" +
+    "l with a fixed UID (04 4C C1 22 9A 3D 80) .\r\nIt should work as-is, but you may want to change the UID us" +
+    "ing the other tab.";
             // 
             // UpdateMagicNTAG
             // 
@@ -363,7 +402,7 @@
             this.BackColor = System.Drawing.SystemColors.Control;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(352, 430);
-            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.tabControl);
             this.Controls.Add(this.labelConnect);
             this.Controls.Add(this.buttonConnect);
             this.MinimizeBox = false;
@@ -375,7 +414,9 @@
             this.groupBoxLength.PerformLayout();
             this.groupBoxTemp.ResumeLayout(false);
             this.groupBoxTemp.PerformLayout();
-            this.tabControl1.ResumeLayout(false);
+            this.tabControl.ResumeLayout(false);
+            this.tabPageInitialise.ResumeLayout(false);
+            this.tabPageInitialise.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -404,13 +445,16 @@
         private System.Windows.Forms.GroupBox groupBoxTemp;
         private System.Windows.Forms.RadioButton radioButton210deg;
         private System.Windows.Forms.RadioButton radioButton190deg;
-        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabControl tabControl;
         private System.Windows.Forms.Button buttonInitialiseCard;
         private System.Windows.Forms.Label labelLengthRemaining;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.RadioButton radioButton200deg;
         private System.Windows.Forms.Label labelPasswordPack;
         private System.Windows.Forms.CheckBox checkBoxLogIt;
+        private System.Windows.Forms.TabPage tabPageInitialise;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label labelInitialiseSucess;
     }
 }
 

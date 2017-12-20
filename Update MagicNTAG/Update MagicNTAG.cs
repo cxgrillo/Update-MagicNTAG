@@ -39,7 +39,7 @@ namespace UpdateMagicNTAG
 
         private const string csNoCardFound = "No Card found";
         private const string csOK = "OK";
-        private const string csNotAMagicNTAG = "Not a Magic NTAG card!";
+        private const string csNotAMagicNTAG = "Not a Magic NTAG213 card!";
         private const string csSuccess = "Success";
         private const string csFail = "Fail";
         private const string csFailed = "Failed!";
@@ -72,8 +72,6 @@ namespace UpdateMagicNTAG
 
         private void buttonConnect_Click(object sender, EventArgs e)
         {
-            buttonInitialiseCard.Visible = false;
-            buttonGetCard.Visible = true;
 
             labelConnect.Text = "Searching...";
             this.Invalidate();
@@ -89,6 +87,8 @@ namespace UpdateMagicNTAG
                 buttonConnect.Text = "Connect";
                 labelConnect.Text = "disconnected";
                 buttonGetCard.Enabled = false;
+                buttonInitialiseCard.Enabled = false;
+
             }
             else
             {
@@ -107,6 +107,7 @@ namespace UpdateMagicNTAG
                         labelConnect.Text = str.Replace(cs0Response, "Arduino : ");
                         buttonConnect.Text = "Disconnect";
                         buttonGetCard.Enabled = true;
+                        buttonInitialiseCard.Enabled = true;
                     }
                     else
                     {
@@ -459,8 +460,7 @@ namespace UpdateMagicNTAG
             bool bRet = IsPage240Readable();
             labelOutput.Text = (bRet ? "" : csNotAMagicNTAG);
 
-            buttonInitialiseCard.Visible = !bRet;
-            buttonGetCard.Visible = bRet;
+            buttonGetCard.Enabled = bRet;
 
             return bRet;
         }
@@ -546,13 +546,11 @@ namespace UpdateMagicNTAG
             byte[] bPackBytes = NfcHack.NfcKey.GetPack(bCardUIDBytes);
 
             string sPACK = String.Format("3,241,{0},{1},0,0", bPackBytes[0], bPackBytes[1]);
-
             string sRetPACK = WriteToArduinoAndRead(sPACK.ToString());
 
             labelPasswordPack.Text += String.Format(" - {0:X} {1:X}", bPackBytes[0], bPackBytes[1]);
 
             if (sRetPassword != "OK") return false;
-
 
             // UID writing
 
@@ -635,7 +633,7 @@ namespace UpdateMagicNTAG
 
             // Configuration pages
             string sPage41 = WriteToArduinoAndRead("3,41,7,0,0,255"); // last byte = 255 opens up all pages to be read
-            string sPage42 = WriteToArduinoAndRead("3,42,128,5,0,0");   // Should first byte be 128?
+            string sPage42 = WriteToArduinoAndRead("3,42,128,5,0,0");   // Should first byte be 128 or 0?
             bSuccess = bSuccess && sPage41.Equals(csOK) && sPage42.Equals(csOK);
 
             // Misc pages
@@ -647,7 +645,7 @@ namespace UpdateMagicNTAG
             bSuccess = bSuccess && sPage12.Equals(csOK) && sPage13.Equals(csOK) && sPage14.Equals(csOK) && sPage17.Equals(csOK);
 
             labelOutput.Text = (bSuccess ? "Data Set" : "Data not set");
-            labelOutput.ForeColor = Color.Green;
+            labelOutput.ForeColor = (bSuccess ? Color.Green : Color.Red); 
 
             mb("Remove and replace card\r\n\r\nThen click OK");
             WriteToArduinoAndRead("9");
@@ -677,71 +675,87 @@ namespace UpdateMagicNTAG
             return !sReturned.ToUpper().StartsWith("ERROR");
         }
         
-        private bool InitialiseAsNTAG213(bool bFullReset)
+        private bool InitialiseAsNTAG213()
         {
             bool bSuccess = true;
             string sTemp;
 
-            mb("Full reset\r\n\r\nRemove and replace card");
+            mb("Initialise Card.\r\n\r\nRemove and replace card\r\n\r\nThen click OK");
 
             sTemp = WriteToArduinoAndRead("9");
             sTemp = WriteToArduinoAndRead("0");
+
+            // Init commands from C.Herrman's lua script to pages 250,251 & 25
 
             bSuccess = bSuccess && WriteToArduinoAndRead("3,250,00,04,04,02").Equals(csOK); // Page FA
 
-            mb("Remove and replace card");
+            if (bSuccess)
+            {
+                mb("Remove and replace card\r\n\r\nThen click OK");
+                sTemp = WriteToArduinoAndRead("9");
+                sTemp = WriteToArduinoAndRead("0");
+                sTemp = WriteToArduinoAndRead("1");
+            }
 
-            sTemp = WriteToArduinoAndRead("9");
-            sTemp = WriteToArduinoAndRead("0");
-            sTemp = WriteToArduinoAndRead("1");
             bSuccess = bSuccess && WriteToArduinoAndRead("3,251,01,00,15,03").Equals(csOK); // Page FB
 
-            mb("Remove and replace card");
-            sTemp = WriteToArduinoAndRead("9");
-            sTemp = WriteToArduinoAndRead("0");
-            sTemp = WriteToArduinoAndRead("1");
+            if (bSuccess)
+            {
+                mb("Remove and replace card\r\n\r\nThen click OK");
+                sTemp = WriteToArduinoAndRead("9");
+                sTemp = WriteToArduinoAndRead("0");
+                sTemp = WriteToArduinoAndRead("1");
+            }
+
             bSuccess = bSuccess && WriteToArduinoAndRead("3,252,00,00,00,00").Equals(csOK); // Page FC
 
-            mb("Remove and replace card");
+            if (bSuccess)
+            {
+                mb("Remove and replace card\r\n\r\nThen click OK");
+                sTemp = WriteToArduinoAndRead("9");
+                sTemp = WriteToArduinoAndRead("0");
+                sTemp = WriteToArduinoAndRead("1");
+            }
 
-            sTemp = WriteToArduinoAndRead("9");
-            sTemp = WriteToArduinoAndRead("0");
-            sTemp = WriteToArduinoAndRead("1");
-
-            // Init commands from C.Herrman's lua script
-            // Basic NTAG values
+            // Basic NTAG / XYZ data values
             bSuccess = bSuccess && WriteToArduinoAndRead("3,3,225,16,18,00").Equals(csOK);
             bSuccess = bSuccess && WriteToArduinoAndRead("3,4,01,03,240,12").Equals(csOK);
             bSuccess = bSuccess && WriteToArduinoAndRead("3,5,52,03,00,254").Equals(csOK);
             bSuccess = bSuccess && WriteToArduinoAndRead("3,41,07,00,00,255").Equals(csOK);
-            bSuccess = bSuccess && WriteToArduinoAndRead("3,42,00,05,00,00").Equals(csOK); // Should first byte be 128?
+            bSuccess = bSuccess && WriteToArduinoAndRead("3,42,128,05,00,00").Equals(csOK); // Should first byte be 128 or 0?
 
-            if (bFullReset)
+            if (bSuccess)
             {
-                mb("Remove and replace card");
-
+                mb("Remove and replace card\r\n\r\nThen click OK");
                 sTemp = WriteToArduinoAndRead("0");
                 sTemp = WriteToArduinoAndRead("1");
-
-                // Default Card uid, password and pack
-                bSuccess = bSuccess && WriteToArduinoAndRead("3,0,04,76,193,1").Equals(csOK);
-                bSuccess = bSuccess && WriteToArduinoAndRead("3,1,34,154,61,128").Equals(csOK);
-                bSuccess = bSuccess && WriteToArduinoAndRead("3,2,05,72,0,0").Equals(csOK);
-
-                bSuccess = bSuccess && WriteToArduinoAndRead("03,240,150,91,93,142").Equals(csOK); // Page F0 = Password
-                bSuccess = bSuccess && WriteToArduinoAndRead("03,241,143,104,0,0").Equals(csOK); // Page F1 = Pack
-
-               mb("Remove and replace card");
             }
-            
+
+            // Default Card uid, password and pack
+            bSuccess = bSuccess && WriteToArduinoAndRead("3,0,04,76,193,1").Equals(csOK);
+            bSuccess = bSuccess && WriteToArduinoAndRead("3,1,34,154,61,128").Equals(csOK);
+            bSuccess = bSuccess && WriteToArduinoAndRead("3,2,05,72,0,0").Equals(csOK);
+
+            bSuccess = bSuccess && WriteToArduinoAndRead("03,240,150,91,93,142").Equals(csOK); // Page F0 = Password
+            bSuccess = bSuccess && WriteToArduinoAndRead("03,241,143,104,0,0").Equals(csOK);   // Page F1 = Pack
+
+            if (bSuccess)
+                mb("Remove and replace card\r\n\r\nThen click OK");
+
             return bSuccess;
         }
 
         private void buttonInitialiseCard_Click(object sender, EventArgs e)
         {
-            InitialiseAsNTAG213(true);
-            buttonGetCard_Click(null, null);
-        }
-    }
+            labelInitialiseSucess.Text = "";
+            this.Invalidate();
+            this.Refresh();
 
+            bool bSuccess = InitialiseAsNTAG213();
+            labelInitialiseSucess.ForeColor = (bSuccess ? Color.Green : Color.Red);
+            labelInitialiseSucess.Text = (bSuccess ? csSuccess : csFail);
+            MessageBox.Show(labelInitialiseSucess.Text);
+        }
+        
+    }
 }
